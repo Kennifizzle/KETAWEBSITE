@@ -1,0 +1,1 @@
+delete from public.orders where email in ('sell@example.com','test@example.com');
