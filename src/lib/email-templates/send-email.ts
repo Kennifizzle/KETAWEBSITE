@@ -39,9 +39,10 @@ export async function sendTemplateEmail(
 ): Promise<SendTemplateEmailResult> {
   const apiKey = process.env.LOVABLE_API_KEY
   const resendKey = process.env.RESEND_API_KEY
-  if (!apiKey && !resendKey) {
+  const brevoKey = process.env.BREVO_API_KEY
+  if (!apiKey && !resendKey && !brevoKey) {
     throw new Error(
-      'No email provider configured. Set LOVABLE_API_KEY (Lovable-hosted) or RESEND_API_KEY (self-hosted).'
+      'No email provider configured. Set LOVABLE_API_KEY (Lovable-hosted), RESEND_API_KEY or BREVO_API_KEY (self-hosted).'
     )
   }
 
@@ -70,6 +71,31 @@ export async function sendTemplateEmail(
       : template.subject
 
   const from = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`
+
+  // Self-hosted fallback: Brevo HTTP API when no Lovable/Resend key is present.
+  if (!apiKey && !resendKey && brevoKey) {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': brevoKey,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: SITE_NAME, email: `noreply@${FROM_DOMAIN}` },
+        to: [{ email: recipient }],
+        subject,
+        htmlContent: html,
+        textContent: text,
+        ...(options.replyTo ? { replyTo: options.replyTo } : {}),
+      }),
+    })
+    if (!res.ok) {
+      const body = await res.text()
+      throw new Error(`Brevo send failed (${res.status}): ${body}`)
+    }
+    return { sent: true }
+  }
 
   // Self-hosted fallback: Resend HTTP API when no Lovable key is present.
   if (!apiKey && resendKey) {

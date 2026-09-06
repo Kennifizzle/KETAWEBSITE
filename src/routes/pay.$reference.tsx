@@ -27,8 +27,8 @@ function BvnFixCard({ reference, onFixed }: { reference: string; onFixed: () => 
       <AlertTriangle className="size-5 text-destructive" />
       <h2 className="mt-2 text-base font-semibold">We couldn't verify that BVN</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Your bank verification number didn't match the name on this order, so no payment account
-        was created. Re-enter your correct 11-digit BVN below.
+        Your bank verification number didn't match the name on this order, so no payment account was
+        created. Re-enter your correct 11-digit BVN below.
       </p>
       <form
         className="mt-4 flex flex-col gap-3 sm:flex-row"
@@ -64,7 +64,7 @@ function BvnFixCard({ reference, onFixed }: { reference: string; onFixed: () => 
           className="shadow-brand inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-70"
         >
           {saving && <Loader2 className="size-4 animate-spin" />}
-          Update &amp; retry
+          Update & retry
         </button>
       </form>
     </div>
@@ -76,6 +76,11 @@ const description =
   "Pay for your KETA order by bank transfer to the dedicated account generated for you. Coins are released as soon as payment confirms.";
 
 export const Route = createFileRoute("/pay/$reference")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    sessionId: typeof search.session_id === "string" ? search.session_id : undefined,
+    status: typeof search.status === "string" ? search.status : undefined,
+    reason: typeof search.reason === "string" ? search.reason : undefined,
+  }),
   head: () => ({
     meta: [
       { title },
@@ -130,19 +135,47 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 
 function PayPage() {
   const { reference } = Route.useParams();
+  const { status: redirectStatus, reason: redirectReason } = Route.useSearch();
   const load = useServerFn(getPaymentSession);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["payment", reference],
     queryFn: () => load({ data: { reference } }),
-    refetchInterval: (query) =>
-      query.state.data?.paymentStatus === "paid" ? false : 15000,
+    refetchInterval: (query) => (query.state.data?.paymentStatus === "paid" ? false : 15000),
     retry: 1,
   });
 
   useEffect(() => {
     if (data?.paymentStatus === "paid") toast.success("Payment confirmed");
   }, [data?.paymentStatus]);
+
+  const redirectBanner = (() => {
+    if (!redirectStatus) return null;
+    if (redirectStatus === "success") {
+      return {
+        tone: "primary" as const,
+        title: "Verification submitted",
+        copy: "Your identity check is in review. Your payment account will appear here as soon as it's approved — this page updates automatically.",
+      };
+    }
+    const reasonCopy: Record<string, string> = {
+      document_unreadable:
+        "Your ID document couldn't be read clearly. Try again with better lighting and a clean photo.",
+      face_mismatch:
+        "The selfie didn't match your ID photo. Please retry and make sure your face is clearly visible.",
+      session_expired:
+        "The verification session expired before you finished. Start a new one below.",
+      user_cancelled: "You left the verification before completing it. You can start again below.",
+      internal_error: "Something went wrong on the verification side. Please try again.",
+    };
+    return {
+      tone: "destructive" as const,
+      title: "Verification not completed",
+      copy:
+        reasonCopy[redirectReason ?? ""] ??
+        "The verification didn't complete. You can retry below.",
+    };
+  })();
 
   return (
     <div className="min-h-screen bg-background">
@@ -189,6 +222,19 @@ function PayPage() {
 
           {data && (
             <div className="mt-8 space-y-6">
+              {redirectBanner && (
+                <div
+                  className={
+                    redirectBanner.tone === "destructive"
+                      ? "rounded-3xl border border-destructive/40 bg-destructive/5 p-6"
+                      : "rounded-3xl border border-primary/30 bg-primary/5 p-6"
+                  }
+                >
+                  <h2 className="text-base font-semibold">{redirectBanner.title}</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">{redirectBanner.copy}</p>
+                </div>
+              )}
+
               <div className="shadow-card rounded-3xl border border-border bg-surface p-6 sm:p-8">
                 <div className="flex items-center justify-between">
                   <div>
@@ -296,10 +342,7 @@ function PayPage() {
                     <CopyRow label="Account number" value={data.account.number} />
                     <CopyRow label="Bank" value={data.account.bank} />
                     <CopyRow label="Account name" value={data.account.name} />
-                    <CopyRow
-                      label="Amount"
-                      value={String(data.amount)}
-                    />
+                    <CopyRow label="Amount" value={String(data.amount)} />
                   </div>
                   {data.account.expiresAt && (
                     <p className="mt-4 text-xs text-muted-foreground">
@@ -333,8 +376,8 @@ function PayPage() {
                   <AlertTriangle className="size-5 text-destructive" />
                   <h2 className="mt-2 text-base font-semibold">Account not ready yet</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    We couldn't generate your payment account. Retry below — the desk has your
-                    order either way and will reach out by email.
+                    We couldn't generate your payment account. Retry below — the desk has your order
+                    either way and will reach out by email.
                   </p>
                   <button
                     type="button"
@@ -345,9 +388,6 @@ function PayPage() {
                   </button>
                 </div>
               )}
-
-
-
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 {data.paymentStatus === "paid" ? (

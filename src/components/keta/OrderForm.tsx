@@ -9,7 +9,6 @@ import { submitOrder } from "@/lib/orders.functions";
 import { validateWalletAddress } from "@/lib/wallet-validation";
 import { getQuote } from "@/lib/quote.functions";
 
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +25,7 @@ const schema = z.object({
     .max(100000000, "That amount is too large — contact the desk"),
   fullName: z.string().trim().min(1, "Your name is required").max(100),
   email: z.string().trim().email("Enter a valid email").max(255),
-  phone: z.string().trim().max(30).optional(),
+  phone: z.string().trim().min(7, "Your phone number is required").max(30),
   walletAddress: z.string().trim().max(200).optional(),
   bvn: z
     .string()
@@ -47,10 +46,15 @@ function fmtQty(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: n < 1 ? 8 : 6 });
 }
 
-const field =
-  "mt-1.5 bg-background/60 border-border focus-visible:ring-primary/40 text-foreground";
+const field = "mt-1.5 bg-background/60 border-border focus-visible:ring-primary/40 text-foreground";
 
-export function OrderForm({ side, allowGiftcards = false }: { side: Side; allowGiftcards?: boolean }) {
+export function OrderForm({
+  side,
+  allowGiftcards = false,
+}: {
+  side: Side;
+  allowGiftcards?: boolean;
+}) {
   const [kind, setKind] = useState<Kind>("crypto");
   const [asset, setAsset] = useState(side === "buy" ? "USDT" : "USDT");
   const [network, setNetwork] = useState("TRC20");
@@ -80,7 +84,6 @@ export function OrderForm({ side, allowGiftcards = false }: { side: Side; allowG
     () => (wallet.trim() === "" ? null : validateWalletAddress(wallet, network)),
     [wallet, network],
   );
-
 
   const networks = useMemo(
     () => CRYPTO_ASSETS.find((a) => a.symbol === asset)?.networks ?? [],
@@ -147,8 +150,6 @@ export function OrderForm({ side, allowGiftcards = false }: { side: Side; allowG
       return;
     }
 
-
-
     setLoading(true);
     try {
       const res = await submitOrder({
@@ -172,7 +173,11 @@ export function OrderForm({ side, allowGiftcards = false }: { side: Side; allowG
       });
       if (side === "buy") {
         toast.success("Order received — setting up your payment account.");
-        navigate({ to: "/pay/$reference", params: { reference: res.reference } });
+        navigate({
+          to: "/pay/$reference",
+          params: { reference: res.reference },
+          search: { sessionId: undefined, status: undefined, reason: undefined },
+        });
         return;
       }
       setReference(res.reference);
@@ -347,8 +352,11 @@ export function OrderForm({ side, allowGiftcards = false }: { side: Side; allowG
         </div>
 
         <div className="sm:col-span-2">
-          <Label htmlFor="phone">Phone / WhatsApp (optional)</Label>
-          <Input id="phone" name="phone" placeholder="+234..." className={field} />
+          <Label htmlFor="phone">Phone / WhatsApp</Label>
+          <Input id="phone" name="phone" placeholder="+234..." className={field} required />
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Required for identity verification on orders above $100.
+          </p>
         </div>
 
         {side === "buy" && isCrypto && (
@@ -389,12 +397,11 @@ export function OrderForm({ side, allowGiftcards = false }: { side: Side; allowG
               required
             />
             <p className="mt-1.5 text-xs text-muted-foreground">
-              Your name, email and BVN are used only to verify you and open your dedicated
-              transfer account. We never see or store your bank password or PIN.
+              Your name, email and BVN are used only to verify you and open your dedicated transfer
+              account. We never see or store your bank password or PIN.
             </p>
           </div>
         )}
-
 
         {side === "sell" && (
           <>
