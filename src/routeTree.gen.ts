@@ -9,30 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SellRouteImport } from './routes/sell'
-import { Route as BuyRouteImport } from './routes/buy'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PayReferenceRouteImport } from './routes/pay.$reference'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BuyRouteImport } from './routes/buy'
+import { Route as SellRouteImport } from './routes/sell'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as PayReferenceRouteImport } from './routes/pay.$reference'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
-import { Route as ApiPublicDeepidvWebhookRouteImport } from './routes/api/public/deepidv-webhook'
-import { Route as ApiPublicAnchorWebhookRouteImport } from './routes/api/public/anchor-webhook'
-import { Route as AuthenticatedAdminWaitlistRouteImport } from './routes/_authenticated/admin.waitlist'
-import { Route as AuthenticatedAdminRatesRouteImport } from './routes/_authenticated/admin.rates'
-import { Route as AuthenticatedAdminCustomersRouteImport } from './routes/_authenticated/admin.customers'
 import { Route as AuthenticatedAdminActivityRouteImport } from './routes/_authenticated/admin.activity'
+import { Route as AuthenticatedAdminCustomersRouteImport } from './routes/_authenticated/admin.customers'
+import { Route as AuthenticatedAdminRatesRouteImport } from './routes/_authenticated/admin.rates'
+import { Route as AuthenticatedAdminWaitlistRouteImport } from './routes/_authenticated/admin.waitlist'
+import { Route as ApiPublicAnchorWebhookRouteImport } from './routes/api/public/anchor-webhook'
+import { Route as ApiPublicDeepidvWebhookRouteImport } from './routes/api/public/deepidv-webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
-const SellRoute = SellRouteImport.update({
-  id: '/sell',
-  path: '/sell',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BuyRoute = BuyRouteImport.update({
-  id: '/buy',
-  path: '/buy',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -40,18 +39,14 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const BuyRoute = BuyRouteImport.update({
+  id: '/buy',
+  path: '/buy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PayReferenceRoute = PayReferenceRouteImport.update({
-  id: '/pay/$reference',
-  path: '/pay/$reference',
+const SellRoute = SellRouteImport.update({
+  id: '/sell',
+  path: '/sell',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -59,25 +54,26 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const PayReferenceRoute = PayReferenceRouteImport.update({
+  id: '/pay/$reference',
+  path: '/pay/$reference',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const ApiPublicDeepidvWebhookRoute = ApiPublicDeepidvWebhookRouteImport.update({
-  id: '/api/public/deepidv-webhook',
-  path: '/api/public/deepidv-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicAnchorWebhookRoute = ApiPublicAnchorWebhookRouteImport.update({
-  id: '/api/public/anchor-webhook',
-  path: '/api/public/anchor-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedAdminWaitlistRoute =
-  AuthenticatedAdminWaitlistRouteImport.update({
-    id: '/waitlist',
-    path: '/waitlist',
+const AuthenticatedAdminActivityRoute =
+  AuthenticatedAdminActivityRouteImport.update({
+    id: '/activity',
+    path: '/activity',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCustomersRoute =
+  AuthenticatedAdminCustomersRouteImport.update({
+    id: '/customers',
+    path: '/customers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminRatesRoute = AuthenticatedAdminRatesRouteImport.update({
@@ -85,18 +81,22 @@ const AuthenticatedAdminRatesRoute = AuthenticatedAdminRatesRouteImport.update({
   path: '/rates',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminCustomersRoute =
-  AuthenticatedAdminCustomersRouteImport.update({
-    id: '/customers',
-    path: '/customers',
+const AuthenticatedAdminWaitlistRoute =
+  AuthenticatedAdminWaitlistRouteImport.update({
+    id: '/waitlist',
+    path: '/waitlist',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminActivityRoute =
-  AuthenticatedAdminActivityRouteImport.update({
-    id: '/activity',
-    path: '/activity',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
+const ApiPublicAnchorWebhookRoute = ApiPublicAnchorWebhookRouteImport.update({
+  id: '/api/public/anchor-webhook',
+  path: '/api/public/anchor-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDeepidvWebhookRoute = ApiPublicDeepidvWebhookRouteImport.update({
+  id: '/api/public/deepidv-webhook',
+  path: '/api/public/deepidv-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -218,25 +218,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sell': {
-      id: '/sell'
-      path: '/sell'
-      fullPath: '/sell'
-      preLoaderRoute: typeof SellRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/buy': {
-      id: '/buy'
-      path: '/buy'
-      fullPath: '/buy'
-      preLoaderRoute: typeof BuyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -246,18 +232,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pay/$reference': {
-      id: '/pay/$reference'
-      path: '/pay/$reference'
-      fullPath: '/pay/$reference'
-      preLoaderRoute: typeof PayReferenceRouteImport
+    '/buy': {
+      id: '/buy'
+      path: '/buy'
+      fullPath: '/buy'
+      preLoaderRoute: typeof BuyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sell': {
+      id: '/sell'
+      path: '/sell'
+      fullPath: '/sell'
+      preLoaderRoute: typeof SellRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -267,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/pay/$reference': {
+      id: '/pay/$reference'
+      path: '/pay/$reference'
+      fullPath: '/pay/$reference'
+      preLoaderRoute: typeof PayReferenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
@@ -274,32 +274,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/api/public/deepidv-webhook': {
-      id: '/api/public/deepidv-webhook'
-      path: '/api/public/deepidv-webhook'
-      fullPath: '/api/public/deepidv-webhook'
-      preLoaderRoute: typeof ApiPublicDeepidvWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/anchor-webhook': {
-      id: '/api/public/anchor-webhook'
-      path: '/api/public/anchor-webhook'
-      fullPath: '/api/public/anchor-webhook'
-      preLoaderRoute: typeof ApiPublicAnchorWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/admin/waitlist': {
-      id: '/_authenticated/admin/waitlist'
-      path: '/waitlist'
-      fullPath: '/admin/waitlist'
-      preLoaderRoute: typeof AuthenticatedAdminWaitlistRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/rates': {
-      id: '/_authenticated/admin/rates'
-      path: '/rates'
-      fullPath: '/admin/rates'
-      preLoaderRoute: typeof AuthenticatedAdminRatesRouteImport
+    '/_authenticated/admin/activity': {
+      id: '/_authenticated/admin/activity'
+      path: '/activity'
+      fullPath: '/admin/activity'
+      preLoaderRoute: typeof AuthenticatedAdminActivityRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/customers': {
@@ -309,12 +288,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCustomersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/activity': {
-      id: '/_authenticated/admin/activity'
-      path: '/activity'
-      fullPath: '/admin/activity'
-      preLoaderRoute: typeof AuthenticatedAdminActivityRouteImport
+    '/_authenticated/admin/rates': {
+      id: '/_authenticated/admin/rates'
+      path: '/rates'
+      fullPath: '/admin/rates'
+      preLoaderRoute: typeof AuthenticatedAdminRatesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/waitlist': {
+      id: '/_authenticated/admin/waitlist'
+      path: '/waitlist'
+      fullPath: '/admin/waitlist'
+      preLoaderRoute: typeof AuthenticatedAdminWaitlistRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/anchor-webhook': {
+      id: '/api/public/anchor-webhook'
+      path: '/api/public/anchor-webhook'
+      fullPath: '/api/public/anchor-webhook'
+      preLoaderRoute: typeof ApiPublicAnchorWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/deepidv-webhook': {
+      id: '/api/public/deepidv-webhook'
+      path: '/api/public/deepidv-webhook'
+      fullPath: '/api/public/deepidv-webhook'
+      preLoaderRoute: typeof ApiPublicDeepidvWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
