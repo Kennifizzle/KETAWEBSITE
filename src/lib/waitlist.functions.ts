@@ -11,7 +11,7 @@ const waitlistSchema = z.object({
 })
 
 export const submitWaitlist = createServerFn({ method: 'POST' })
-  .inputValidator((data: unknown) => waitlistSchema.parse(data))
+  .validator((data: unknown) => waitlistSchema.parse(data))
   .handler(async ({ data }) => {
     // Server-side, input already validated. Admin client is used so we can read
     // back the inserted row (the table has no public SELECT policy).

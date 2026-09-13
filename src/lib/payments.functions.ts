@@ -37,7 +37,7 @@ export interface PaymentView {
  * worth more than $100.
  */
 export const getPaymentSession = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => refSchema.parse(data))
+  .validator((data: unknown) => refSchema.parse(data))
   .handler(async ({ data }): Promise<PaymentView> => {
     const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
     const {
@@ -239,7 +239,7 @@ const bvnSchema = z.object({
 
 /** Lets a buyer correct a BVN the provider rejected, then retry the account. */
 export const updateOrderBvn = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => bvnSchema.parse(data))
+  .validator((data: unknown) => bvnSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
     const { error } = await supabase

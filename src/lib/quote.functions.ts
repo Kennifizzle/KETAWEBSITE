@@ -20,7 +20,7 @@ export interface QuoteView {
 
 /** Live indicative rate for a crypto order, spread included. */
 export const getQuote = createServerFn({ method: 'POST' })
-  .inputValidator((data: unknown) => quoteSchema.parse(data))
+  .validator((data: unknown) => quoteSchema.parse(data))
   .handler(async ({ data }): Promise<QuoteView> => {
     const { quoteOrder } = await import('@/lib/payments.server')
     return quoteOrder({ asset: data.asset, side: data.side, amountNgn: data.amount })

@@ -28,6 +28,9 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    build: {
+      chunkSizeWarningLimit: 1000,
+    },
     resolve: {
       alias: {
         "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),

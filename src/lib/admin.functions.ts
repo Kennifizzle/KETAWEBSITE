@@ -152,7 +152,7 @@ const listSchema = z.object({
 
 export const listOrders = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => listSchema.parse(data ?? {}))
+  .validator((data: unknown) => listSchema.parse(data ?? {}))
   .handler(async ({ data, context }): Promise<AdminOrder[]> => {
     await assertStaff(context as never)
     let query = context.supabase
@@ -203,7 +203,7 @@ const statusSchema = z.object({
 
 export const updateOrderStatus = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => statusSchema.parse(data))
+  .validator((data: unknown) => statusSchema.parse(data))
   .handler(async ({ data, context }) => {
     await assertStaff(context as never, true)
     const { error } = await context.supabase
@@ -343,7 +343,7 @@ const ratesSchema = z.object({
 
 export const updateRates = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => ratesSchema.parse(data))
+  .validator((data: unknown) => ratesSchema.parse(data))
   .handler(async ({ data, context }) => {
     await assertStaff(context as never, true)
     const { error } = await context.supabase
@@ -398,7 +398,7 @@ async function findUsersByEmail(emails: string[]) {
 /** Roles for a list of customer emails, so the desk can manage team access. */
 export const getRolesForEmails = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ emails: z.array(z.string().email()).max(500) }).parse(data),
   )
   .handler(async ({ data, context }): Promise<UserRoleRow[]> => {
@@ -432,7 +432,7 @@ const setRoleSchema = z.object({
 /** Promote or demote a user. Admin only; cannot demote yourself. */
 export const setUserRole = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => setRoleSchema.parse(data))
+  .validator((data: unknown) => setRoleSchema.parse(data))
   .handler(async ({ data, context }) => {
     await assertStaff(context as never, true)
     const users = await findUsersByEmail([data.email])
