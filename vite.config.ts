@@ -17,10 +17,8 @@ Object.assign(process.env, serverEnv);
 
 export default defineConfig({
   nitro: {
-    // Pin Vercel target for `vercel build` / Vercel Git deployments.
-    // Without this, local builds fall back to cloudflare-module.
-    // On Vercel, Nitro then emits `.vercel/output` (Build Output API v3).
-    preset: "vercel",
+    // Netlify expects a Nitro preset that emits Netlify functions rather than Vercel output.
+    preset: "netlify",
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
