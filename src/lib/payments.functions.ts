@@ -107,7 +107,7 @@ export const getPaymentSession = createServerFn({ method: "POST" })
       try {
         return new URL(getRequestUrl()).origin.replace(/^http:\/\//, "https://");
       } catch {
-        return "https://keta.ltd";
+        return "https://example.com";
       }
     })();
 

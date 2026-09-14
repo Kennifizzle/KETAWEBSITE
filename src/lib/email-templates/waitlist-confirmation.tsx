@@ -37,13 +37,13 @@ const Email = ({ name, kind = 'trader' }: Props) => (
           </Text>
           <Text style={panelText}>
             Buy crypto:{' '}
-            <Link style={link} href="https://keta.ltd/buy">
+            <Link style={link} href="https://www.keta.ltd/buy">
               keta.ltd/buy
             </Link>
           </Text>
           <Text style={panelText}>
             Sell crypto &amp; giftcards:{' '}
-            <Link style={link} href="https://keta.ltd/sell">
+            <Link style={link} href="https://www.keta.ltd/sell">
               keta.ltd/sell
             </Link>
           </Text>
