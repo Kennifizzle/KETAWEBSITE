@@ -15,10 +15,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverEnv = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
 Object.assign(process.env, serverEnv);
 
-export default defineConfig({
-  nitro: {
-    preset: "node-server",
+// The Lovable wrapper only types `preset` / `output` / `cloudflare`, but it spreads this
+// object straight into `nitro()`, so additional Nitro options are forwarded at runtime.
+// `inlineDynamicImports` turns the Nitro server build into a single file (rolldown maps it
+// to `codeSplitting: false`), which removes the circular chunk pair that left
+// `createMiddleware` uninitialized when TanStack Start built its CSRF middleware at module
+// top level — surfacing as "TypeError: createMiddleware is not a function" at runtime.
+const nitroOptions = {
+  preset: "node-server",
+  rollupConfig: {
+    output: {
+      inlineDynamicImports: true,
+    },
   },
+} as unknown as { preset: string };
+
+export default defineConfig({
+  nitro: nitroOptions,
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
