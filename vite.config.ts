@@ -17,8 +17,7 @@ Object.assign(process.env, serverEnv);
 
 export default defineConfig({
   nitro: {
-    // Netlify expects a Nitro preset that emits Netlify functions rather than Vercel output.
-    preset: "netlify",
+    preset: "node-server",
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
