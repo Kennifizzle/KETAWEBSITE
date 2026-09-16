@@ -2,6 +2,6 @@ services:
   - type: web
     name: keta-website
     runtime: node
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start
     healthCheckPath: /
