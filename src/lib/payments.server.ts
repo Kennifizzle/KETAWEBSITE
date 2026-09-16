@@ -63,10 +63,19 @@ async function anchorFetch(path: string, init: RequestInit) {
   });
   const text = await res.text();
   if (!res.ok) {
-    console.error(`anchor ${path} failed [${res.status}]: ${text}`);
+    // Surface the *environment* that was hit so a key/env mismatch is obvious
+    // in the logs instead of a generic "Invalid Credentials" 401.
+    console.error(`anchor ${path} failed [${res.status}] baseUrl=${baseUrl}: ${text}`);
     if (looksLikeBvnRejection(res.status, text)) {
       throw new BvnRejectedError(
         "We could not verify that BVN with your name. Check the 11 digits and try again.",
+      );
+    }
+    if (res.status === 401) {
+      throw new Error(
+        "Anchor rejected the request with 401 Invalid Credentials. " +
+          "Confirm ANCHOR_ENVIRONMENT matches the key's environment " +
+          "(sandbox vs live) and that ANCHOR_API_KEY on the server is correct.",
       );
     }
     throw new Error(`Anchor request failed [${res.status}]: ${text}`);
@@ -266,10 +275,34 @@ const COINGECKO_IDS: Record<string, string> = {
   TRX: "tron",
 };
 
+// In-process price cache keeps us from hitting CoinGecko on every quote
+// (which trips 429s under load). Stale-while-revalidate: serve the cached
+// value immediately, then refresh in the background when it's old.
+const PRICE_CACHE_MAX_AGE_MS = 60_000;
+const priceCache = new Map<string, { price: number; fetchedAt: number }>();
+
 /** Market price of one unit of `asset` in USD. */
 export async function getAssetUsdPrice(asset: string): Promise<number | null> {
   const id = COINGECKO_IDS[asset.toUpperCase()];
   if (!id) return null;
+
+  const cached = priceCache.get(id);
+  const freshEnough = cached && Date.now() - cached.fetchedAt < PRICE_CACHE_MAX_AGE_MS;
+  if (freshEnough && cached) {
+    // Stale-while-revalidate: kick off a background refresh but return stale.
+    void refreshAssetPrice(id);
+    return cached.price;
+  }
+
+  // Cache miss or stale: fetch synchronously and return the fresh value.
+  const price = await fetchAssetPrice(id);
+  if (price != null) {
+    priceCache.set(id, { price, fetchedAt: Date.now() });
+  }
+  return price ?? cached?.price ?? null;
+}
+
+async function fetchAssetPrice(id: string): Promise<number | null> {
   try {
     const res = await fetch(
       `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`,
@@ -280,11 +313,19 @@ export async function getAssetUsdPrice(asset: string): Promise<number | null> {
       const usd = json[id]?.usd;
       if (typeof usd === "number" && usd > 0) return usd;
     }
-    console.error("asset price lookup failed", asset, res.status);
+    console.error("asset price lookup failed", id, res.status);
   } catch (e) {
-    console.error("asset price lookup error", asset, e);
+    console.error("asset price lookup error", id, e);
   }
   return null;
+}
+
+// Background refresher used by stale-while-revalidate.
+async function refreshAssetPrice(id: string) {
+  const price = await fetchAssetPrice(id);
+  if (price != null) {
+    priceCache.set(id, { price, fetchedAt: Date.now() });
+  }
 }
 
 export interface Quote {
