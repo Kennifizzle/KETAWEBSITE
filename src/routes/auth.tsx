@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { supabase } from '@/integrations/supabase/client'
-import { lovable } from '@/integrations/lovable/index'
 import { toast } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 import logo from '@/assets/keta-logo.png'
 
 export const Route = createFileRoute('/auth')({
@@ -57,18 +57,6 @@ function AuthPage() {
     }
   }
 
-  async function google() {
-    const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin + '/auth',
-    })
-    if (result.error) {
-      toast.error('Google sign-in failed')
-      return
-    }
-    if (result.redirected) return
-    navigate({ to: '/admin', replace: true })
-  }
-
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-5 py-16">
       <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-card/60 p-7 backdrop-blur">
@@ -108,20 +96,13 @@ function AuthPage() {
 
         <button
           type="button"
-          onClick={google}
-          className="mt-3 w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted/40"
-        >
-          Continue with Google
-        </button>
-
-        <button
-          type="button"
           onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
           className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"
         >
           {mode === 'signin' ? 'Need an account? Create one' : 'Already have an account? Sign in'}
         </button>
       </div>
+      <Toaster position="bottom-center" />
     </main>
   )
 }
