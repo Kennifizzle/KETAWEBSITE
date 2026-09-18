@@ -49,6 +49,7 @@ export const getPaymentSession = createServerFn({ method: "POST" })
       VERIFICATION_USD_THRESHOLD,
     } = await import("@/lib/payments.server");
     const { getRequestUrl } = await import("@tanstack/react-start/server");
+    const { decryptBvn } = await import("@/lib/crypto.server");
 
     const { data: order, error } = await supabase
       .from("orders")
@@ -61,6 +62,9 @@ export const getPaymentSession = createServerFn({ method: "POST" })
       throw new Error("Could not load this order");
     }
     if (!order) throw new Error("Order not found");
+
+    // BVN is encrypted at rest; decrypt only transiently for the provider calls below.
+    const bvn = order.bvn ? decryptBvn(order.bvn) : null;
 
     let usdAmount = order.usd_amount as number | null;
     let usdRate = (order as { usd_rate?: number | null }).usd_rate ?? null;
@@ -115,7 +119,6 @@ export const getPaymentSession = createServerFn({ method: "POST" })
     if (verificationRequired && !verificationUrl && verificationStatus !== "approved") {
       // One-time verification: if this person (by hashed BVN) has already
       // passed DeepIDV on a previous order, skip KYC entirely.
-      const bvn = (order as { bvn?: string | null }).bvn ?? null;
       if (bvn) {
         const { data: existing } = await supabase
           .from("verified_identities")
@@ -166,12 +169,35 @@ export const getPaymentSession = createServerFn({ method: "POST" })
           fullName: order.full_name,
           email: order.email,
           phone: order.phone,
-          bvn: (order as { bvn?: string | null }).bvn ?? null,
+          bvn,
         });
         accountNumber = account.accountNumber;
         bankName = account.bankName;
         accountName = account.accountName;
         expiresAt = account.expiresAt;
+
+        // Data minimization (NDPA): the BVN is no longer needed once the
+        // account is created. Record a hashed identity so KYC is skipped on
+        // future orders, then drop the (encrypted) BVN entirely.
+        if (bvn) {
+          patch["bvn"] = null;
+          try {
+            const { error: dupeError } = await supabase.from("verified_identities").upsert(
+              {
+                bvn_hash: hashBvn(bvn),
+                full_name: order.full_name,
+                provider: "anchor",
+                provider_ref: account.providerRef,
+                verified_at: new Date().toISOString(),
+              },
+              { onConflict: "bvn_hash" },
+            );
+            if (dupeError) console.error("verified_identity upsert failed", dupeError);
+          } catch (e) {
+            console.error("verified_identity upsert failed", e);
+          }
+        }
+
         paymentStatus = "awaiting_payment";
         patch["virtual_account_number"] = account.accountNumber;
         patch["virtual_account_bank"] = account.bankName;
@@ -194,6 +220,22 @@ export const getPaymentSession = createServerFn({ method: "POST" })
               : "account_failed";
         patch["payment_status"] = paymentStatus;
       }
+    }
+
+    // Defensive retention: if this order got stuck without an account and still
+    // holds a BVN (e.g. Anchor never responded), expire the BVN after the
+    // account-creation window has long passed.
+    const daysSinceCreated = order.created_at
+      ? (Date.now() - new Date(order.created_at as string).getTime()) / (1000 * 60 * 60 * 24)
+      : Infinity;
+    if (
+      bvn &&
+      !accountNumber &&
+      paymentStatus !== "bvn_rejected" &&
+      paymentStatus !== "awaiting_account" &&
+      daysSinceCreated > 7
+    ) {
+      patch["bvn"] = null;
     }
 
     if (Object.keys(patch).length > 0) {
@@ -242,9 +284,10 @@ export const updateOrderBvn = createServerFn({ method: "POST" })
   .validator((data: unknown) => bvnSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
+    const { encryptBvn } = await import("@/lib/crypto.server");
     const { error } = await supabase
       .from("orders")
-      .update({ bvn: data.bvn, payment_status: "awaiting_account" })
+      .update({ bvn: encryptBvn(data.bvn), payment_status: "awaiting_account" })
       .eq("reference", data.reference)
       .is("virtual_account_number", null);
 
